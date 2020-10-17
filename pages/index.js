@@ -76,7 +76,7 @@ FilesTable.propTypes = {
   setActiveFile: PropTypes.func
 };
 
-function Previewer({ file }) {
+function Previewer({ file, edit }) {
   const [value, setValue] = useState('');
 
   useEffect(() => {
@@ -89,36 +89,48 @@ function Previewer({ file }) {
     <div className={css.preview}>
       <div className={css.title}>{path.basename(file.name)}</div>
       <div className={css.content}>{value}</div>
+      <button onClick={edit}>Edit</button>
     </div>
   );
 }
 
 Previewer.propTypes = {
-  file: PropTypes.object
+  file: PropTypes.object,
+  edit: PropTypes.func
 };
 
 // Uncomment keys to register editors for media types
 const REGISTERED_EDITORS = {
-  // "text/plain": PlaintextEditor,
-  // "text/markdown": MarkdownEditor,
+  "text/plain": PlaintextEditor,
+  "text/markdown": MarkdownEditor,
 };
 
 function PlaintextFilesChallenge() {
   const [files, setFiles] = useState([]);
   const [activeFile, setActiveFile] = useState(null);
+  const [view, setView] = useState("preview")
 
   useEffect(() => {
     const files = listFiles();
     setFiles(files);
   }, []);
 
-  const write = file => {
-    console.log('Writing soon... ', file.name);
+  // const write = file => {
+  //   console.log('Writing soon... ', file.name);
 
-    // TODO: Write the file to the `files` array
-  };
+  //   // TODO: Write the file to the `files` array
+  // };
 
-  const Editor = activeFile ? REGISTERED_EDITORS[activeFile.type] : null;
+  const edit = activeFile => {
+    const viewType = (activeFile.type === "text/plain" ? "editor" : "markdown")
+    setView(`${viewType}`)
+  }
+
+  const save = () => {
+    setView("preview")
+  }
+
+  const Editor = (activeFile && view!=="preview") ? REGISTERED_EDITORS[activeFile.type] : null;
 
   return (
     <div className={css.page}>
@@ -157,8 +169,8 @@ function PlaintextFilesChallenge() {
       <main className={css.editorWindow}>
         {activeFile && (
           <>
-            {Editor && <Editor file={activeFile} write={write} />}
-            {!Editor && <Previewer file={activeFile} />}
+            {Editor && <Editor file={activeFile} save={save}/>}
+            {!Editor && <Previewer file={activeFile} edit={edit}/>}
           </>
         )}
 
